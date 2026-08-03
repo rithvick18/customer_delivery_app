@@ -1,8 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'stock_confidence_badge.dart';
+
+class StoreImage extends StatelessWidget {
+  final String imageUrl;
+
+  const StoreImage({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.15),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.primary,
+            size: 36,
+          ),
+        ),
+      );
+    } else {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.15),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.primary,
+            size: 36,
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.15),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.primary,
+            size: 36,
+          ),
+        ),
+      );
+    }
+  }
+}
 
 class StoreCard extends StatelessWidget {
   final StoreModel store;
@@ -21,10 +67,14 @@ class StoreCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14.0),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.surfaceContainerLow : AppColors.surfaceContainerLowest,
+        color: isSelected
+            ? AppColors.surfaceContainerLow
+            : AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: isSelected ? AppColors.primaryContainer : const Color(0xFFE2E8F0),
+          color: isSelected
+              ? AppColors.primaryContainer
+              : const Color(0xFFE2E8F0),
           width: isSelected ? 2.0 : 1.0,
         ),
         boxShadow: [
@@ -54,20 +104,7 @@ class StoreCard extends StatelessWidget {
                     width: 72,
                     height: 72,
                     color: AppColors.surfaceContainer,
-                    child: Image.asset(
-                      store.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppColors.primaryContainer.withValues(alpha: 0.15),
-                          child: const Icon(
-                            Icons.storefront_rounded,
-                            color: AppColors.primary,
-                            size: 36,
-                          ),
-                        );
-                      },
-                    ),
+                    child: StoreImage(imageUrl: store.imageUrl),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -89,7 +126,10 @@ class StoreCard extends StatelessWidget {
                           ),
                           if (isSelected)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
@@ -114,7 +154,11 @@ class StoreCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.schedule, size: 14, color: AppColors.outline),
+                          Icon(
+                            Icons.schedule,
+                            size: 14,
+                            color: AppColors.outline,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${store.deliveryTimeMins} min delivery (${store.pickupTimeMins} min pickup)',
@@ -130,10 +174,17 @@ class StoreCard extends StatelessWidget {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          StockConfidenceBadge(scorePercentage: store.stockConfidenceScore),
-                          ...store.tags.take(2).map(
+                          StockConfidenceBadge(
+                            scorePercentage: store.stockConfidenceScore,
+                          ),
+                          ...store.tags
+                              .take(2)
+                              .map(
                                 (tag) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.surfaceContainerHigh,
                                     borderRadius: BorderRadius.circular(12),

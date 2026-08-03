@@ -34,9 +34,19 @@ class _ProductListingsScreenState extends State<ProductListingsScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.provider.products.isEmpty) {
+      widget.provider.fetchProductsForStore(widget.provider.selectedStore.id);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selectedStore = widget.provider.selectedStore;
-    final allProducts = ProductModel.sampleProducts;
+    final allProducts = widget.provider.products.isNotEmpty
+        ? widget.provider.products
+        : ProductModel.sampleProducts;
 
     final filteredProducts = allProducts.where((p) {
       final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());

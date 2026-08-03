@@ -3,10 +3,21 @@ import '../models/store.dart';
 import '../models/product.dart';
 import '../models/live_order.dart';
 import '../models/replacement_preference.dart';
+import '../services/supabase_service.dart';
 
 /// Central state provider managing cart items, store selection, live order state, and replacement preferences.
 class CartProvider extends ChangeNotifier {
+  final SupabaseService _supabaseService = SupabaseService();
+
   StoreModel _selectedStore = StoreModel.sampleStores.first;
+  List<StoreModel> _stores = [];
+  bool _isLoadingStores = false;
+  String? _storesError;
+
+  List<ProductModel> _products = [];
+  bool _isLoadingProducts = false;
+  String? _productsError;
+
   final Map<String, int> _cartQuantities = {};
   final LiveOrderModel _liveOrder = LiveOrderModel.sampleLiveOrder;
   ReplacementPreferenceModel _preferences = ReplacementPreferenceModel.samplePreferences;
@@ -16,6 +27,14 @@ class CartProvider extends ChangeNotifier {
   bool _hasActiveOrder = false;
 
   StoreModel get selectedStore => _selectedStore;
+  List<StoreModel> get stores => _stores;
+  bool get isLoadingStores => _isLoadingStores;
+  String? get storesError => _storesError;
+
+  List<ProductModel> get products => _products;
+  bool get isLoadingProducts => _isLoadingProducts;
+  String? get productsError => _productsError;
+
   Map<String, int> get cartQuantities => Map.unmodifiable(_cartQuantities);
   LiveOrderModel get liveOrder => _liveOrder;
   ReplacementPreferenceModel get preferences => _preferences;
@@ -28,18 +47,76 @@ class CartProvider extends ChangeNotifier {
   double get totalPrice {
     double total = 0.0;
     _cartQuantities.forEach((prodId, qty) {
-      final prod = ProductModel.sampleProducts.firstWhere(
-        (p) => p.id == prodId,
-        orElse: () => ProductModel.sampleProducts.first,
-      );
+      ProductModel? prod;
+      for (final p in _products) {
+        if (p.id == prodId) {
+          prod = p;
+          break;
+        }
+      }
+      if (prod == null) {
+        for (final p in ProductModel.sampleProducts) {
+          if (p.id == prodId) {
+            prod = p;
+            break;
+          }
+        }
+      }
+      prod ??= _products.isNotEmpty ? _products.first : ProductModel.sampleProducts.first;
       total += prod.price * qty;
     });
     return total;
   }
 
+  Future<void> fetchStores() async {
+    _isLoadingStores = true;
+    _storesError = null;
+    notifyListeners();
+
+    try {
+      final fetched = await _supabaseService.fetchStores();
+      if (fetched.isNotEmpty) {
+        _stores = fetched;
+        if (!_stores.contains(_selectedStore)) {
+          _selectedStore = _stores.first;
+        }
+      } else {
+        _stores = StoreModel.sampleStores;
+      }
+    } catch (e) {
+      _storesError = e.toString();
+      _stores = StoreModel.sampleStores;
+    } finally {
+      _isLoadingStores = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchProductsForStore(String storeId) async {
+    _isLoadingProducts = true;
+    _productsError = null;
+    notifyListeners();
+
+    try {
+      final fetched = await _supabaseService.fetchProductsForStore(storeId);
+      if (fetched.isNotEmpty) {
+        _products = fetched;
+      } else {
+        _products = ProductModel.sampleProducts;
+      }
+    } catch (e) {
+      _productsError = e.toString();
+      _products = ProductModel.sampleProducts;
+    } finally {
+      _isLoadingProducts = false;
+      notifyListeners();
+    }
+  }
+
   void selectStore(StoreModel store) {
     _selectedStore = store;
     notifyListeners();
+    fetchProductsForStore(store.id);
   }
 
   int getQuantity(String productId) {

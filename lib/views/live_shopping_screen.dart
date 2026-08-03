@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/live_order.dart';
 import '../providers/cart_provider.dart';
@@ -6,19 +7,57 @@ import '../theme/app_typography.dart';
 import '../widgets/live_shopper_card.dart';
 import '../widgets/replacement_option_card.dart';
 
-class LiveShoppingScreen extends StatelessWidget {
+class LiveShoppingScreen extends StatefulWidget {
   final CartProvider provider;
 
-  const LiveShoppingScreen({
-    super.key,
-    required this.provider,
-  });
+  const LiveShoppingScreen({super.key, required this.provider});
+
+  @override
+  State<LiveShoppingScreen> createState() => _LiveShoppingScreenState();
+}
+
+class _LiveShoppingScreenState extends State<LiveShoppingScreen> {
+  bool _showOutOfStockAlert = false;
+  int _simulationTimeRemaining = 5;
+  Timer? _simulationTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startSimulationTimer();
+  }
+
+  @override
+  void dispose() {
+    _simulationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startSimulationTimer() {
+    _simulationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _simulationTimeRemaining--;
+        if (_simulationTimeRemaining <= 0) {
+          _showOutOfStockAlert = true;
+          _simulationTimer?.cancel();
+        }
+      });
+    });
+  }
+
+  void _triggerOutOfStockManually() {
+    setState(() {
+      _showOutOfStockAlert = true;
+      _simulationTimeRemaining = 0;
+    });
+    _simulationTimer?.cancel();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final liveOrder = provider.liveOrder;
-    final decision = provider.replacementDecision;
-    final selectedId = provider.selectedReplacementId;
+    final liveOrder = widget.provider.liveOrder;
+    final decision = widget.provider.replacementDecision;
+    final selectedId = widget.provider.selectedReplacementId;
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +76,10 @@ class LiveShoppingScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.help_outline_rounded, color: AppColors.onSurface),
+            icon: const Icon(
+              Icons.help_outline_rounded,
+              color: AppColors.onSurface,
+            ),
             onPressed: () {},
           ),
         ],
@@ -65,7 +107,11 @@ class LiveShoppingScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 22),
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: AppColors.error,
+                          size: 22,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -82,7 +128,10 @@ class LiveShoppingScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       'Marcus noticed "${liveOrder.outOfStockItemName}" is out of stock in Aisle 4. Please approve a replacement below.',
-                      style: AppTypography.bodySm.copyWith(fontSize: 13, color: AppColors.onSurface),
+                      style: AppTypography.bodySm.copyWith(
+                        fontSize: 13,
+                        color: AppColors.onSurface,
+                      ),
                     ),
                   ],
                 ),
@@ -100,16 +149,86 @@ class LiveShoppingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
+              // Simulation Timer Display
+              if (_simulationTimeRemaining > 0)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.timer,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Simulation: Out of stock in $_simulationTimeRemaining seconds',
+                        style: AppTypography.bodySm.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: _triggerOutOfStockManually,
+                        child: Text(
+                          'Trigger Now',
+                          style: AppTypography.labelCaps.copyWith(
+                            color: AppColors.primary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (_showOutOfStockAlert)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.warning,
+                        size: 18,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Out of Stock Alert Triggered!',
+                        style: AppTypography.bodySm.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 8),
+
               // Replacement Options Carousel / List
               ...liveOrder.replacementOptions.map(
                 (option) => ReplacementOptionCard(
                   option: option,
-                  isSelected: selectedId == option.id && decision == ReplacementDecisionStatus.approved,
+                  isSelected:
+                      selectedId == option.id &&
+                      decision == ReplacementDecisionStatus.approved,
                   onApprove: () {
-                    provider.approveReplacement(option.id);
+                    widget.provider.approveReplacement(option.id);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Approved "${option.title}" as replacement!'),
+                        content: Text(
+                          'Approved "${option.title}" as replacement!',
+                        ),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -125,9 +244,13 @@ class LiveShoppingScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        provider.declineReplacement();
+                        widget.provider.declineReplacement();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Requested refund for out-of-stock item')),
+                          const SnackBar(
+                            content: Text(
+                              'Requested refund for out-of-stock item',
+                            ),
+                          ),
                         );
                       },
                       style: OutlinedButton.styleFrom(
@@ -148,10 +271,7 @@ class LiveShoppingScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Order Items Activity Stream List
-              Text(
-                'Cart Item Status Stream',
-                style: AppTypography.titleMd,
-              ),
+              Text('Cart Item Status Stream', style: AppTypography.titleMd),
               const SizedBox(height: 12),
 
               Container(
@@ -170,13 +290,13 @@ class LiveShoppingScreen extends StatelessWidget {
                         isInCart
                             ? Icons.check_circle_rounded
                             : isOutOfStock
-                                ? Icons.cancel_rounded
-                                : Icons.radio_button_unchecked_rounded,
+                            ? Icons.cancel_rounded
+                            : Icons.radio_button_unchecked_rounded,
                         color: isInCart
                             ? AppColors.confidenceHigh
                             : isOutOfStock
-                                ? AppColors.error
-                                : AppColors.primary,
+                            ? AppColors.error
+                            : AppColors.primary,
                       ),
                       title: Text(
                         item.name,
@@ -187,20 +307,27 @@ class LiveShoppingScreen extends StatelessWidget {
                         style: AppTypography.bodySm.copyWith(fontSize: 12),
                       ),
                       trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: isInCart
                               ? AppColors.surfaceContainerLow
                               : isOutOfStock
-                                  ? AppColors.errorContainer.withValues(alpha: 0.5)
-                                  : AppColors.primaryContainer.withValues(alpha: 0.2),
+                              ? AppColors.errorContainer.withValues(alpha: 0.5)
+                              : AppColors.primaryContainer.withValues(
+                                  alpha: 0.2,
+                                ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           item.status,
                           style: AppTypography.labelCaps.copyWith(
                             fontSize: 10,
-                            color: isOutOfStock ? AppColors.error : AppColors.onSurface,
+                            color: isOutOfStock
+                                ? AppColors.error
+                                : AppColors.onSurface,
                           ),
                         ),
                       ),

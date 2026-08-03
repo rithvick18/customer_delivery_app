@@ -34,9 +34,19 @@ class _StoreSelectionScreenState extends State<StoreSelectionScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.provider.stores.isEmpty) {
+      widget.provider.fetchStores();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selectedStore = widget.provider.selectedStore;
-    final allStores = StoreModel.sampleStores;
+    final allStores = widget.provider.stores.isNotEmpty
+        ? widget.provider.stores
+        : StoreModel.sampleStores;
 
     final filteredStores = allStores.where((s) {
       final matchesSearch = s.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||

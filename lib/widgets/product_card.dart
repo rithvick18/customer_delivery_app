@@ -1,8 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'stock_confidence_badge.dart';
+
+class ProductImage extends StatelessWidget {
+  final String imageUrl;
+
+  const ProductImage({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.12),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.primary,
+            size: 48,
+          ),
+        ),
+      );
+    } else {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.12),
+          child: const Icon(Icons.image, color: AppColors.primary, size: 48),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: AppColors.primaryContainer.withValues(alpha: 0.12),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.primary,
+            size: 48,
+          ),
+        ),
+      );
+    }
+  }
+}
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -42,25 +84,14 @@ class ProductCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16.0),
+                ),
                 child: Container(
                   height: 120,
                   width: double.infinity,
                   color: AppColors.surfaceContainer,
-                  child: Image.asset(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.primaryContainer.withValues(alpha: 0.12),
-                        child: const Icon(
-                          Icons.shopping_bag_outlined,
-                          color: AppColors.primary,
-                          size: 48,
-                        ),
-                      );
-                    },
-                  ),
+                  child: ProductImage(imageUrl: product.imageUrl),
                 ),
               ),
               if (product.badgeText != null)
@@ -68,7 +99,10 @@ class ProductCard extends StatelessWidget {
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: isOutOfStock
                           ? AppColors.errorContainer
@@ -105,7 +139,10 @@ class ProductCard extends StatelessWidget {
               children: [
                 Text(
                   product.name,
-                  style: AppTypography.titleMd.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+                  style: AppTypography.titleMd.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -150,57 +187,81 @@ class ProductCard extends StatelessWidget {
                           onPressed: null,
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            side: const BorderSide(color: AppColors.outlineVariant),
+                            side: const BorderSide(
+                              color: AppColors.outlineVariant,
+                            ),
                           ),
                           child: Text(
                             'Unavailable',
-                            style: AppTypography.labelCaps.copyWith(color: AppColors.outline),
+                            style: AppTypography.labelCaps.copyWith(
+                              color: AppColors.outline,
+                            ),
                           ),
                         ),
                       )
                     : cartQuantity == 0
-                        ? SizedBox(
-                            width: double.infinity,
-                            height: 36,
-                            child: ElevatedButton.icon(
-                              onPressed: onAdd,
-                              icon: const Icon(Icons.add_shopping_cart, size: 16),
-                              label: const Text('Add'),
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                textStyle: AppTypography.titleMd.copyWith(fontSize: 13),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryContainer.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.primaryContainer),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove, size: 16, color: AppColors.primary),
-                                  onPressed: onRemove,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
-                                ),
-                                Text(
-                                  '$cartQuantity',
-                                  style: AppTypography.titleMd.copyWith(fontSize: 14),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add, size: 16, color: AppColors.primary),
-                                  onPressed: onAdd,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
-                                ),
-                              ],
+                    ? SizedBox(
+                        width: double.infinity,
+                        height: 36,
+                        child: ElevatedButton.icon(
+                          onPressed: onAdd,
+                          icon: const Icon(Icons.add_shopping_cart, size: 16),
+                          label: const Text('Add'),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            textStyle: AppTypography.titleMd.copyWith(
+                              fontSize: 13,
                             ),
                           ),
+                        ),
+                      )
+                    : Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryContainer.withValues(
+                            alpha: 0.2,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.primaryContainer),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              onPressed: onRemove,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 36,
+                              ),
+                            ),
+                            Text(
+                              '$cartQuantity',
+                              style: AppTypography.titleMd.copyWith(
+                                fontSize: 14,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.add,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              onPressed: onAdd,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 36,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
               ],
             ),
           ),

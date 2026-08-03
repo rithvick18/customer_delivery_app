@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'providers/cart_provider.dart';
+import 'services/supabase_service.dart';
 import 'theme/app_theme.dart';
 import 'views/main_navigation_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseService.initialize();
   runApp(const SolarisGroceryApp());
 }
 
@@ -21,6 +24,9 @@ class _SolarisGroceryAppState extends State<SolarisGroceryApp> {
   void initState() {
     super.initState();
     _cartProvider = CartProvider();
+    _cartProvider.fetchStores().then((_) {
+      _cartProvider.fetchProductsForStore(_cartProvider.selectedStore.id);
+    });
   }
 
   @override
