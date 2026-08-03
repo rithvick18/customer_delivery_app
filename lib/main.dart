@@ -24,8 +24,8 @@ class _SolarisGroceryAppState extends State<SolarisGroceryApp> {
   void initState() {
     super.initState();
     _cartProvider = CartProvider();
-    _cartProvider.fetchStores().then((_) {
-      _cartProvider.fetchProductsForStore(_cartProvider.selectedStore.id);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cartProvider.fetchStores();
     });
   }
 

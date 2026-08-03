@@ -77,15 +77,21 @@ class CartProvider extends ChangeNotifier {
       final fetched = await _supabaseService.fetchStores();
       if (fetched.isNotEmpty) {
         _stores = fetched;
-        if (!_stores.contains(_selectedStore)) {
-          _selectedStore = _stores.first;
-        }
+        _selectedStore = _stores.first;
+        print('[CartProvider.fetchStores] Auto-selected first store: ${_selectedStore.name} (${_selectedStore.id})');
+        await fetchProductsForStore(_selectedStore.id);
       } else {
+        print('[CartProvider.fetchStores] Empty stores fetched, using fallback sample stores');
         _stores = StoreModel.sampleStores;
+        _selectedStore = _stores.first;
+        await fetchProductsForStore(_selectedStore.id);
       }
     } catch (e) {
       _storesError = e.toString();
+      print('[CartProvider.fetchStores] Error: $_storesError');
       _stores = StoreModel.sampleStores;
+      _selectedStore = _stores.first;
+      await fetchProductsForStore(_selectedStore.id);
     } finally {
       _isLoadingStores = false;
       notifyListeners();
@@ -98,14 +104,17 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final fetched = await _supabaseService.fetchProductsForStore(storeId);
+      final fetched = await _supabaseService.fetchStoreInventory(storeId);
       if (fetched.isNotEmpty) {
         _products = fetched;
+        print('[CartProvider.fetchProductsForStore] Loaded ${_products.length} products for store: $storeId');
       } else {
+        print('[CartProvider.fetchProductsForStore] Empty products fetched, using fallback sample products');
         _products = ProductModel.sampleProducts;
       }
     } catch (e) {
       _productsError = e.toString();
+      print('[CartProvider.fetchProductsForStore] Error: $_productsError');
       _products = ProductModel.sampleProducts;
     } finally {
       _isLoadingProducts = false;

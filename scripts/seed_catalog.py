@@ -5,7 +5,7 @@ Seed script to populate Supabase database with stores, products, and inventory m
 - 200 Products across 6 categories
 - 2,000 Store Inventory mappings (200 products x 10 stores)
 
-Uses local static assets instead of Unsplash URLs.
+Uses curated Unsplash HTTP photo URLs for all products and stores.
 """
 
 import os
@@ -53,100 +53,120 @@ AISLE_LOCATIONS = [
     "Aisle 8 - Shelf A", "Aisle 8 - Shelf B", "Aisle 8 - Shelf C",
 ]
 
-# Local asset paths for store images
+# High quality Unsplash URLs for stores
 STORE_IMAGES = [
-    "assets/images/stores/store_1.jpg",
-    "assets/images/stores/store_2.jpg",
-    "assets/images/stores/store_3.jpg",
-    "assets/images/stores/store_4.jpg",
-    "assets/images/stores/store_5.jpg",
-    "assets/images/stores/store_6.jpg",
-    "assets/images/stores/store_7.jpg",
-    "assets/images/stores/store_8.jpg",
-    "assets/images/stores/store_9.jpg",
-    "assets/images/stores/store_10.jpg",
+    "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1517523791225-289075439574?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?w=600&h=400&fit=crop",
 ]
 
-# Local asset paths for product images by category
-PRODUCT_IMAGES = {
+# Keyword-to-Unsplash image mapping for accurate product photos
+KEYWORD_IMAGE_MAP = {
+    "Apple": "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop",
+    "Avocado": "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&h=400&fit=crop",
+    "Banana": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop",
+    "Strawberry": "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=400&fit=crop",
+    "Blueberry": "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=400&h=400&fit=crop",
+    "Spinach": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=400&fit=crop",
+    "Tomato": "https://images.unsplash.com/photo-1592841200221-21e1c0d36875?w=400&h=400&fit=crop",
+    "Broccoli": "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&h=400&fit=crop",
+    "Carrot": "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop",
+    "Grape": "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400&h=400&fit=crop",
+    "Lemon": "https://images.unsplash.com/photo-1534531141161-e41d133a4be3?w=400&h=400&fit=crop",
+    "Orange": "https://images.unsplash.com/photo-1547514701-42782101795e?w=400&h=400&fit=crop",
+    "Pepper": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop",
+    "Potato": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=400&fit=crop",
+    "Milk": "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop",
+    "Cheese": "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop",
+    "Egg": "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop",
+    "Yogurt": "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+    "Butter": "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400&h=400&fit=crop",
+    "Bread": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop",
+    "Croissant": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&h=400&fit=crop",
+    "Bagel": "https://images.unsplash.com/photo-1585478259715-876a6a81fc08?w=400&h=400&fit=crop",
+    "Cake": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop",
+    "Cookie": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=400&fit=crop",
+    "Donut": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&h=400&fit=crop",
+    "Pasta": "https://images.unsplash.com/photo-1621996346565-e3d5d6281288?w=400&h=400&fit=crop",
+    "Spaghetti": "https://images.unsplash.com/photo-1621996346565-e3d5d6281288?w=400&h=400&fit=crop",
+    "Rice": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop",
+    "Bean": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop",
+    "Cereal": "https://images.unsplash.com/photo-1521483451569-e33803c0330c?w=400&h=400&fit=crop",
+    "Honey": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?w=400&h=400&fit=crop",
+    "Oil": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop",
+    "Coffee": "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop",
+    "Tea": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&h=400&fit=crop",
+    "Juice": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=400&fit=crop",
+    "Soda": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=400&fit=crop",
+    "Water": "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&h=400&fit=crop",
+    "Chip": "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&h=400&fit=crop",
+    "Cracker": "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400&h=400&fit=crop",
+    "Nut": "https://images.unsplash.com/photo-1536591375315-1b8368813277?w=400&h=400&fit=crop",
+    "Popcorn": "https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=400&h=400&fit=crop",
+    "Chocolate": "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&h=400&fit=crop",
+}
+
+# Category fallback Unsplash photo pools
+CATEGORY_IMAGES = {
     "Fresh Produce": [
-        "assets/images/products/apples.jpg",
-        "assets/images/products/avocados.jpg",
-        "assets/images/products/bananas.jpg",
-        "assets/images/products/berries.jpg",
-        "assets/images/products/broccoli.jpg",
-        "assets/images/products/carrots.jpg",
-        "assets/images/products/grapes.jpg",
-        "assets/images/products/lemons.jpg",
-        "assets/images/products/lettuce.jpg",
-        "assets/images/products/oranges.jpg",
-        "assets/images/products/peppers.jpg",
-        "assets/images/products/potatoes.jpg",
-        "assets/images/products/spinach.jpg",
-        "assets/images/products/strawberries.jpg",
-        "assets/images/products/tomatoes.jpg",
+        "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1534531141161-e41d133a4be3?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1547514701-42782101795e?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1592841200221-21e1c0d36875?w=400&h=400&fit=crop",
     ],
     "Dairy & Eggs": [
-        "assets/images/products/milk.jpg",
-        "assets/images/products/cheese.jpg",
-        "assets/images/products/eggs.jpg",
-        "assets/images/products/yogurt.jpg",
-        "assets/images/products/butter.jpg",
-        "assets/images/products/cream.jpg",
-        "assets/images/products/sour_cream.jpg",
-        "assets/images/products/cottage_cheese.jpg",
-        "assets/images/products/ice_cream.jpg",
-        "assets/images/products/whipping_cream.jpg",
+        "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=400&h=400&fit=crop",
     ],
     "Bakery & Bread": [
-        "assets/images/products/bread.jpg",
-        "assets/images/products/croissants.jpg",
-        "assets/images/products/muffins.jpg",
-        "assets/images/products/bagels.jpg",
-        "assets/images/products/cake.jpg",
-        "assets/images/products/cookies.jpg",
-        "assets/images/products/donuts.jpg",
-        "assets/images/products/pie.jpg",
-        "assets/images/products/rolls.jpg",
-        "assets/images/products/tortillas.jpg",
+        "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1585478259715-876a6a81fc08?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&h=400&fit=crop",
     ],
     "Pantry & Staples": [
-        "assets/images/products/pasta.jpg",
-        "assets/images/products/rice.jpg",
-        "assets/images/products/canned_beans.jpg",
-        "assets/images/products/canned_tomatoes.jpg",
-        "assets/images/products/cereal.jpg",
-        "assets/images/products/flour.jpg",
-        "assets/images/products/oats.jpg",
-        "assets/images/products/pasta_sauce.jpg",
-        "assets/images/products/peanut_butter.jpg",
-        "assets/images/products/soup.jpg",
-        "assets/images/products/spaghetti.jpg",
-        "assets/images/products/sugar.jpg",
+        "https://images.unsplash.com/photo-1621996346565-e3d5d6281288?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1521483451569-e33803c0330c?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1587049352847-4a222e784d38?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop",
     ],
     "Beverages": [
-        "assets/images/products/coffee.jpg",
-        "assets/images/products/tea.jpg",
-        "assets/images/products/juice.jpg",
-        "assets/images/products/soda.jpg",
-        "assets/images/products/water.jpg",
-        "assets/images/products/milk_alt.jpg",
-        "assets/images/products/energy_drink.jpg",
-        "assets/images/products/sparkling_water.jpg",
-        "assets/images/products/lemonade.jpg",
-        "assets/images/products/iced_tea.jpg",
+        "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&h=400&fit=crop",
     ],
     "Snacks": [
-        "assets/images/products/chips.jpg",
-        "assets/images/products/crackers.jpg",
-        "assets/images/products/nuts.jpg",
-        "assets/images/products/popcorn.jpg",
-        "assets/images/products/pretzels.jpg",
-        "assets/images/products/granola_bar.jpg",
-        "assets/images/products/chocolate.jpg",
-        "assets/images/products/candy.jpg",
-        "assets/images/products/trail_mix.jpg",
-        "assets/images/products/beef_jerky.jpg",
+        "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1536591375315-1b8368813277?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&h=400&fit=crop",
     ],
 }
 
@@ -154,7 +174,7 @@ def generate_barcode():
     """Generate a realistic EAN-13 barcode."""
     return str(random.randint(1000000000000, 9999999999999))
 
-def generate_store_data() -> List[Dict[str, Any]]:
+def generate_store_data() -> tuple[List[Dict[str, Any]], Dict[int, str]]:
     """Generate 10 store records."""
     stores = []
     store_names = [
@@ -196,8 +216,6 @@ def generate_store_data() -> List[Dict[str, Any]]:
         ["Community Supported", "Local Vendors", "Fresh Daily"]
     ]
 
-    import uuid
-
     store_id_map = {}
     for i in range(10):
         s_uuid = str(uuid.uuid4())
@@ -219,7 +237,6 @@ def generate_product_data() -> tuple[List[Dict[str, Any]], Dict[int, str]]:
     products = []
     product_id_map = {}
 
-    # Product names by category
     produce_names = [
         "Honeycrisp Apples", "Gala Apples", "Fuji Apples", "Granny Smith Apples",
         "Hass Avocados", "Organic Bananas", "Sweet Yellow Strawberries", "Blueberries",
@@ -285,7 +302,6 @@ def generate_product_data() -> tuple[List[Dict[str, Any]], Dict[int, str]]:
         "Snacks": snack_names,
     }
 
-    # Distribute 200 products across categories
     products_per_category = 200 // len(CATEGORIES)
     remainder = 200 % len(CATEGORIES)
 
@@ -301,8 +317,16 @@ def generate_product_data() -> tuple[List[Dict[str, Any]], Dict[int, str]]:
             if i >= len(names):
                 name = f"{name} {i - len(names) + 1}"
 
-            category_images = PRODUCT_IMAGES[category]
-            image_idx = i % len(category_images)
+            # Match photo URL by keyword or fallback to category pool
+            image_url = None
+            for key, url in KEYWORD_IMAGE_MAP.items():
+                if key.lower() in name.lower():
+                    image_url = url
+                    break
+
+            if not image_url:
+                pool = CATEGORY_IMAGES.get(category, CATEGORY_IMAGES["Fresh Produce"])
+                image_url = pool[i % len(pool)]
 
             is_organic = random.random() < 0.3
             p_uuid = str(uuid.uuid4())
@@ -317,7 +341,7 @@ def generate_product_data() -> tuple[List[Dict[str, Any]], Dict[int, str]]:
                 "barcode": generate_barcode(),
                 "is_organic": is_organic,
                 "aisle_location": random.choice(AISLE_LOCATIONS),
-                "image_url": category_images[image_idx],
+                "image_url": image_url,
             }
             products.append(product)
             product_idx += 1
@@ -343,9 +367,21 @@ def generate_inventory_data(stores: List[Dict[str, Any]], products: List[Dict[st
 
     return inventory
 
+def clear_existing_data():
+    """Clear existing data before re-seeding to ensure clean state."""
+    print("Clearing existing data from Supabase...")
+    try:
+        supabase.table("store_inventory").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+        supabase.table("products").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+        supabase.table("stores").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+        print("  Existing records cleared.")
+    except Exception as e:
+        print(f"  Note while clearing: {e}")
+
 def seed_database():
     """Main function to seed the database."""
-    print("Starting database seeding...")
+    print("Starting database seeding with Unsplash URLs...")
+    clear_existing_data()
 
     # Generate data
     print("Generating store data...")

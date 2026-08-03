@@ -37,221 +37,228 @@ class _ProductListingsScreenState extends State<ProductListingsScreen> {
   void initState() {
     super.initState();
     if (widget.provider.products.isEmpty) {
-      widget.provider.fetchProductsForStore(widget.provider.selectedStore.id);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.provider.fetchProductsForStore(widget.provider.selectedStore.id);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedStore = widget.provider.selectedStore;
-    final allProducts = widget.provider.products.isNotEmpty
-        ? widget.provider.products
-        : ProductModel.sampleProducts;
+    return ListenableBuilder(
+      listenable: widget.provider,
+      builder: (context, _) {
+        final selectedStore = widget.provider.selectedStore;
+        final allProducts = widget.provider.products.isNotEmpty
+            ? widget.provider.products
+            : ProductModel.sampleProducts;
 
-    final filteredProducts = allProducts.where((p) {
-      final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      if (!matchesSearch) return false;
+        final filteredProducts = allProducts.where((p) {
+          final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          if (!matchesSearch) return false;
 
-      if (_selectedCategory == 'All Produce') return true;
-      if (_selectedCategory == 'Organic') return p.isOrganic;
-      if (_selectedCategory == 'Local Farms') return p.badgeText?.contains('Local') ?? false;
-      if (_selectedCategory == 'On Sale') return p.badgeText != null;
-      if (_selectedCategory == 'In Stock') return p.stockStatus != StockStatus.outOfStock;
-      return true;
-    }).toList();
+          if (_selectedCategory == 'All Produce') return true;
+          if (_selectedCategory == 'Organic') return p.isOrganic;
+          if (_selectedCategory == 'Local Farms') return p.badgeText?.contains('Local') ?? false;
+          if (_selectedCategory == 'On Sale') return p.badgeText != null;
+          if (_selectedCategory == 'In Stock') return p.stockStatus != StockStatus.outOfStock;
+          return true;
+        }).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              selectedStore.name,
-              style: AppTypography.labelCaps.copyWith(color: AppColors.primary),
+        return Scaffold(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  selectedStore.name,
+                  style: AppTypography.labelCaps.copyWith(color: AppColors.primary),
+                ),
+                Text(
+                  'Stock Confidence Produce',
+                  style: AppTypography.headlineMobile.copyWith(fontSize: 20),
+                ),
+              ],
             ),
-            Text(
-              'Stock Confidence Produce',
-              style: AppTypography.headlineMobile.copyWith(fontSize: 20),
-            ),
-          ],
-        ),
-        actions: [
-          ListenableBuilder(
-            listenable: widget.provider,
-            builder: (context, _) {
-              final count = widget.provider.totalItemCount;
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CartScreen(provider: widget.provider),
+            actions: [
+              ListenableBuilder(
+                listenable: widget.provider,
+                builder: (context, _) {
+                  final count = widget.provider.totalItemCount;
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CartScreen(provider: widget.provider),
+                            ),
+                          );
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                            child: Text(
+                              '$count',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.badgeText.copyWith(
+                                fontSize: 10,
+                                color: AppColors.onPrimaryContainer,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Reusable Active Order Banner (shown if order active)
+                ActiveOrderBanner(provider: widget.provider),
+
+                // Live Stock Banner & Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    children: [
+                      CustomSearchBar(
+                        hintText: 'Search produce catalog...',
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Live Sync Status Banner
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.surfaceContainerHigh),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.confidenceHigh,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Live Stock Sync Active • Inventory verified 2 mins ago',
+                                style: AppTypography.labelCaps.copyWith(
+                                  fontSize: 11,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Category Pills Horizontal List
+                SizedBox(
+                  height: 38,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _categories.length,
+                    itemBuilder: (context, index) {
+                      final cat = _categories[index];
+                      final isSelected = _selectedCategory == cat;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: Text(cat),
+                          selected: isSelected,
+                          onSelected: (val) {
+                            if (val) {
+                              setState(() {
+                                _selectedCategory = cat;
+                              });
+                            }
+                          },
+                          selectedColor: AppColors.primaryContainer,
+                          backgroundColor: AppColors.surfaceContainerLowest,
+                          labelStyle: AppTypography.bodySm.copyWith(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                            side: BorderSide(
+                              color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant,
+                            ),
+                          ),
                         ),
                       );
                     },
                   ),
-                  if (count > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryContainer,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                        child: Text(
-                          '$count',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.badgeText.copyWith(
-                            fontSize: 10,
-                            color: AppColors.onPrimaryContainer,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Reusable Active Order Banner (shown if order active)
-            ActiveOrderBanner(provider: widget.provider),
-
-            // Live Stock Banner & Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                children: [
-                  CustomSearchBar(
-                    hintText: 'Search produce catalog...',
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Live Sync Status Banner
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.surfaceContainerHigh),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.confidenceHigh,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Live Stock Sync Active • Inventory verified 2 mins ago',
-                            style: AppTypography.labelCaps.copyWith(
-                              fontSize: 11,
-                              color: AppColors.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Category Pills Horizontal List
-            SizedBox(
-              height: 38,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final cat = _categories[index];
-                  final isSelected = _selectedCategory == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (val) {
-                        if (val) {
-                          setState(() {
-                            _selectedCategory = cat;
-                          });
-                        }
-                      },
-                      selectedColor: AppColors.primaryContainer,
-                      backgroundColor: AppColors.surfaceContainerLowest,
-                      labelStyle: AppTypography.bodySm.copyWith(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        side: BorderSide(
-                          color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Product Grid
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 80.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.63,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
                 ),
-                itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts[index];
-                  final qty = widget.provider.getQuantity(product.id);
-                  return ProductCard(
-                    product: product,
-                    cartQuantity: qty,
-                    onAdd: () {
-                      widget.provider.incrementQuantity(product.id);
+                const SizedBox(height: 12),
+
+                // Product Grid
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 80.0),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.63,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                    ),
+                    itemCount: filteredProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      final qty = widget.provider.getQuantity(product.id);
+                      return ProductCard(
+                        product: product,
+                        cartQuantity: qty,
+                        onAdd: () {
+                          widget.provider.incrementQuantity(product.id);
+                        },
+                        onRemove: () {
+                          widget.provider.decrementQuantity(product.id);
+                        },
+                      );
                     },
-                    onRemove: () {
-                      widget.provider.decrementQuantity(product.id);
-                    },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomSheet: FloatingCartBar(provider: widget.provider),
+          ),
+          bottomSheet: FloatingCartBar(provider: widget.provider),
+        );
+      },
     );
   }
 }
