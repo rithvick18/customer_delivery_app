@@ -208,6 +208,25 @@ class LiveShoppingScreen extends StatelessWidget {
                   }).toList(),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  label: const Text('Back to Home / Navigation'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.outlineVariant),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 30),
             ],
           ),

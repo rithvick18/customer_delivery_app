@@ -13,12 +13,15 @@ class CartProvider extends ChangeNotifier {
   ReplacementDecisionStatus _replacementDecision = ReplacementDecisionStatus.pending;
   String? _selectedReplacementId;
 
+  bool _hasActiveOrder = false;
+
   StoreModel get selectedStore => _selectedStore;
   Map<String, int> get cartQuantities => Map.unmodifiable(_cartQuantities);
   LiveOrderModel get liveOrder => _liveOrder;
   ReplacementPreferenceModel get preferences => _preferences;
   ReplacementDecisionStatus get replacementDecision => _replacementDecision;
   String? get selectedReplacementId => _selectedReplacementId;
+  bool get hasActiveOrder => _hasActiveOrder;
 
   int get totalItemCount => _cartQuantities.values.fold(0, (sum, q) => sum + q);
 
@@ -99,6 +102,22 @@ class CartProvider extends ChangeNotifier {
       preferOrganicIfOriginalOrganic: val,
       categoryPreferences: _preferences.categoryPreferences,
     );
+    notifyListeners();
+  }
+
+  void placeOrder() {
+    _hasActiveOrder = true;
+    _cartQuantities.clear();
+    notifyListeners();
+  }
+
+  void completeOrder() {
+    _hasActiveOrder = false;
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _cartQuantities.clear();
     notifyListeners();
   }
 }

@@ -3,8 +3,11 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../widgets/active_order_banner.dart';
 import '../widgets/custom_search_bar.dart';
+import '../widgets/floating_cart_bar.dart';
 import '../widgets/product_card.dart';
+import 'cart_screen.dart';
 
 class ProductListingsScreen extends StatefulWidget {
   final CartProvider provider;
@@ -63,44 +66,62 @@ class _ProductListingsScreenState extends State<ProductListingsScreen> {
           ],
         ),
         actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
-                onPressed: () {},
-              ),
-              if (widget.provider.totalItemCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                    child: Text(
-                      '${widget.provider.totalItemCount}',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.badgeText.copyWith(
-                        fontSize: 10,
-                        color: AppColors.onPrimaryContainer,
+          ListenableBuilder(
+            listenable: widget.provider,
+            builder: (context, _) {
+              final count = widget.provider.totalItemCount;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CartScreen(provider: widget.provider),
+                        ),
+                      );
+                    },
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryContainer,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        child: Text(
+                          '$count',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.badgeText.copyWith(
+                            fontSize: 10,
+                            color: AppColors.onPrimaryContainer,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
+            // Reusable Active Order Banner (shown if order active)
+            ActiveOrderBanner(provider: widget.provider),
+
             // Live Stock Banner & Search Bar
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
                 children: [
                   CustomSearchBar(
@@ -193,7 +214,7 @@ class _ProductListingsScreenState extends State<ProductListingsScreen> {
             // Product Grid
             Expanded(
               child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 80.0),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   childAspectRatio: 0.63,
@@ -220,6 +241,7 @@ class _ProductListingsScreenState extends State<ProductListingsScreen> {
           ],
         ),
       ),
+      bottomSheet: FloatingCartBar(provider: widget.provider),
     );
   }
 }

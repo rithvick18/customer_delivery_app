@@ -3,6 +3,7 @@ import '../models/store.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../widgets/active_order_banner.dart';
 import '../widgets/custom_search_bar.dart';
 import '../widgets/store_card.dart';
 
@@ -86,6 +87,7 @@ class _StoreSelectionScreenState extends State<StoreSelectionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    ActiveOrderBanner(provider: widget.provider),
                     // Search Bar
                     CustomSearchBar(
                       hintText: 'Search stores or addresses...',
